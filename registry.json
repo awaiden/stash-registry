@@ -1,0 +1,10 @@
+{
+  "name": "stash-registry",
+  "items": {
+    "turnstile-guard": {
+      "source": "nest/guards/turnstile.guard.ts",
+      "target": "common/guards/turnstile.guard.ts",
+      "dependencies": ["axios", "@nestjs/common"]
+    }
+  }
+}
