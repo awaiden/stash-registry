@@ -1,5 +1,8 @@
-const { API_BASE_URL } = import.meta.env.VITE_API_BASE_URL;
+// @ts-ignore
+
 import axios, { AxiosInstance } from "axios";
+
+const { API_BASE_URL } = import.meta.env.VITE_API_BASE_URL;
 
 const getToken = (): string | null => {
   if (typeof window === "undefined") {
