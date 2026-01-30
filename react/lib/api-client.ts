@@ -1,15 +1,20 @@
-import axios from "axios";
+const { API_BASE_URL } = import.meta.env.VITE_API_BASE_URL;
+import axios, { AxiosInstance } from "axios";
 
-import useLoaderStore from "@/store/loader-store";
+const getToken = (): string | null => {
+  if (typeof window === "undefined") {
+    return null;
+  }
 
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000",
-});
-
-function getToken() {
-  if (typeof window === "undefined") return null;
   return localStorage.getItem("token");
-}
+};
+
+const apiClient: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 apiClient.interceptors.request.use(
   (config) => {
@@ -17,31 +22,23 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
-    useLoaderStore.getState().showLoader();
     return config;
   },
-  (error) => {
-    useLoaderStore.getState().hideLoader();
-    return Promise.reject(error);
-  },
+  (error) => Promise.reject(error),
 );
 
 apiClient.interceptors.response.use(
-  (response) => {
-    useLoaderStore.getState().hideLoader();
-    return response;
-  },
+  (response) => response,
   (error) => {
-    useLoaderStore.getState().hideLoader();
+    console.error("API Error:", error.response?.data || error.message);
     return Promise.reject(error);
   },
 );
 
 export const resolveApiError = (error: unknown) => {
-  if (!axios.isAxiosError(error)) return { message: "Bilinmeyen bir hata oluştu." };
+  if (!axios.isAxiosError(error)) return { message: "An unknown error." };
 
-  if (!error.response) return { message: "Sunucuya ulaşılamıyor." };
+  if (!error.response) return { message: "Can't reach to the server." };
 
   const data = error.response.data as {
     message: string | string[];
@@ -49,12 +46,10 @@ export const resolveApiError = (error: unknown) => {
     statusCode: number;
   };
 
-  if (data.statusCode === 500) {
-    return { message: "Sunucu hatası oluştu." };
-  }
-
   return {
-    message: Array.isArray(data.message) ? data.message.join(", ") : data.message,
+    message: Array.isArray(data.message)
+      ? data.message.join(", ")
+      : data.message,
     error: data.error,
   };
 };
